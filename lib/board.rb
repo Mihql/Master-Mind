@@ -15,6 +15,6 @@ class Board
 
   def update(guessed_color_code, level, column)
     puts "level:#{level} column:#{column}"
-    @grid_one[level][column] = guessed_color_code 
+    @grid_one[level][column] = guessed_color_code
   end
 end

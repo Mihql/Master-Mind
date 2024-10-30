@@ -1,54 +1,42 @@
 # frozen_string_literal: true
 
 require_relative 'board'
+require_relative 'color_loader'
 require 'color'
-require 'color_conversion'
 
 # Class Game
 class Game
   COUNT = 4
+  COLOR_INFO = Array.new(COUNT)
 
   def initialize
     @board = Board.new
+    @color_loader = ColorLoader.new
 
     @computer_color_code = generate_random_color(COUNT)
     @guessed_color_code = Array.new(COUNT) { Array.new(COUNT) }
-    @computer_guessed_code = @computer_color_code.keys.sample(4, random: Random.new(1))
-    @computer_guessed_code.each do |key|
-      @code = key
-    end
-    puts "#{@computer_guessed_code}  - COMPUTER CODE"
+    @computer_guessed_code = @computer_color_code['colors'].keys.sample(4)
+    puts "#{@computer_guessed_code}  - COMPUTER GUESSED CODE"
     @computer = 'O'
     @player = 'X'
     @level = 0 # Initial -1 because increment array
     @player_guessed_right = 0
   end
 
-  def generate_random_color(count)
-    Array.new(count)
-    {
-      'red' => '#FF0000',
-      'green' => '#008000',
-      'blue' => '#0000FF',
-      'yellow' => '#FFFF00',
-      'black' => '#000000',
-      'white' => '#FFFFFF',
-      'orange' => '#FFA500',
-      'purple' => '#800080'
-    }
+  def generate_random_color(_count)
+    puts @color_loader.color_info
+    @color_loader.color_info
   end
 
   def play
-    puts @computer_color_code.inspect
     COUNT.times do
       @board.display_board
       # result_boolean = level()
       prompt_color
-      # puts "Color: #{color.inspect}"
     end
 
     @board.display_board
-    # puts "Guessed color codes are: #{@guessed_color_code}"
+    puts "Guessed color codes are: #{@guessed_color_code}"
   end
 
   def level(user_input)
@@ -64,7 +52,7 @@ class Game
 
     feedback(user_input, @player_guessed_right)
   end
-    
+
   def feedback(color, player_guessed_right)
     puts "You guessed #{color} of #{player_guessed_right} / 5"
   end
@@ -76,17 +64,17 @@ class Game
         user_input = gets.chomp
 
         if user_input.is_a?(String) && valid_color_name?(user_input)
-          colored = Color::RGB.by_name(user_input).html.upcase # covert to hex
-          # @guessed_color_code[@level][i] = colored        #// hex 
-          @guessed_color_code[@level][i] = user_input   # "color_name" 
+          Color::RGB.by_name(user_input).html.upcase # covert to hex
+          # @guessed_color_code[@level][i] = colored        #// hex
+          @guessed_color_code[@level][i] = user_input # "color_name"
           add_guess(user_input, @level, i)
           @board.display_board
 
           level(user_input)
-          puts "ITS BREAK HERE NO WONDERS!"
+          puts 'ITS BREAK HERE NO WONDERS!'
           puts "#{@computer_guessed_code}  - COMPUTER CODE"
           break # Break out the inner loop
-        else  
+        else
           puts "invalid color input #{user_input}"
           # The loop will repeat, allowing user to try again without losing current slot
         end
@@ -94,8 +82,7 @@ class Game
     end
 
     @level += 1
-    puts "DOES IT BREAK?"
-    @guessed_color_code
+    puts 'DOES IT BREAK?'
     level(@guessed_color_code)
   end
 
