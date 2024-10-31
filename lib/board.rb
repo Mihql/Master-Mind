@@ -13,8 +13,8 @@ class Board
     end
   end
 
-  def update(guessed_color_code, level, column)
-    puts "level:#{level} column:#{column}"
-    @grid_one[level][column] = guessed_color_code
+  def update(player_guessed_color_code, level, row)
+    puts "level:#{level} row:#{row}"
+    @grid_one[level][row] = player_guessed_color_code
   end
 end
