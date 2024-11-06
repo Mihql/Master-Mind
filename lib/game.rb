@@ -4,96 +4,53 @@ require_relative 'board'
 require_relative 'color_loader'
 require 'color'
 
-# Class Game
+# Class Game: Manages the gameplay, intractions, and logic
 class Game
   COUNT = 4
+
   COLOR_INFO = Array.new(COUNT)
 
   def initialize
     @board = Board.new
-    @color_loader = ColorLoader.new
-
+    @color_loader = ColorLoader.new # Load color form yml
     @computer_color_code = load_color
     @computer_guessed_code = @computer_color_code['colors'].keys.sample(4)
-    puts "#{@computer_guessed_code}  - COMPUTER GUESSED CODE"
-
-    @computer = 'O'
-    @player = 'X'
     @level = 0
     @player_guessed_right = 0
     @guessed_color_code = Array.new(COUNT) { Array.new(COUNT) }
   end
+
+  def play
+    COUNT.times do
+      @board.display_board
+      prompt_for_guess
+    end
+
+    puts "Guessed color codes are: #{@guessed_color_code}"
+  end
+
+  private
 
   def load_color
     puts @color_loader.color_info
     @color_loader.color_info
   end
 
-  def play
-    COUNT.times do
-      @board.display_board
-      # result_boolean = level()
-      prompt_color
-    end
-
-    @board.display_board
-    puts "Guessed color codes are: #{@guessed_color_code}"
-  end
-
-  private
-
-  def level(user_input)
-    result = get_computer_guess_color(user_input)
-    puts "Lets see the #{result.last}"
-    if result.last
-      color = result[0]
-      puts "#{color} You Found It !!!"
-      @player_guessed_right += 1
-    else
-      puts "DUMB!!! #{user_input} is not here!"
-    end
-
-    feedback(user_input, @player_guessed_right)
-  end
-
-  def feedback(color, player_guessed_right)
-    puts "You guessed #{color} of #{player_guessed_right} / 5"
-  end
-
-  def prompt_color
+  def prompt_for_guess
     COUNT.times do |i|
       loop do
-        puts 'Choose the colors you wants guess:'
+        puts "Choose the colors you wants guess: Game colors #{@computer_color_code}"
         user_input = gets.chomp
-
-        break if auth_check?(user_input, i)
-
-        # Break out the inner loop
+        break process_guess(user_input, i) if valid_input?(user_input)
 
         puts "invalid color input #{user_input}"
-        # The loop will repeat, allowing user to try again without losing current slot
       end
     end
-
     @level += 1
   end
 
-  def auth_check?(user_input, iterate)
-    if user_input.is_a?(String) && valid_color_name?(user_input)
-
-      Color::RGB.by_name(user_input).html.upcase # covert to hex
-
-      puts "#{@computer_guessed_code}  - COMPUTER GUESSED CODE"
-      @guessed_color_code[@level][iterate] = user_input # "color_name"
-
-      add_guess(user_input, @level, iterate)
-      @board.display_board
-      level(user_input)
-      puts "Goblin lord"
-      true
-    else
-      false
-    end
+  def valid_input?(user_input)
+    user_input.is_a?(String) && valid_color_name?(user_input)
   end
 
   def valid_color_name?(color_name)
@@ -104,19 +61,29 @@ class Game
     false
   end
 
-  def get_computer_guess_color(color)
-    @computer_guessed_code.each do |color_key|
-      if color_key == color
-        puts "#{color_key} == #{color}"
-        return [color, true]
-      end
-    end
-
-    [color, false]
+  def process_guess(color, index)
+    @guessed_color_code[@level][index] = color # "color_name"
+    evaluate_guess(color) # evaluvate first then add to board
+    add_guess_to_board(color, @level, index)
   end
 
-  def add_guess(player_guessed_color_code, level, row)
-    @board.update(player_guessed_color_code, level, row)
+  def evaluate_guess(color)
+    result = color_in_computer_code?(color)
+    puts result ? "#{result} - correct" : "No match for #{color}"
+    @player_guessed_right += 1 if result
+    display_feedback(color, @player_guessed_right)
+  end
+
+  def color_in_computer_code?(color)
+    @computer_guessed_code.include?(color)
+  end
+
+  def display_feedback(color, guessed_right_count)
+    puts "You guessed #{color}: #{guessed_right_count} correct out of / #{COUNT}"
+  end
+
+  def add_guess_to_board(color, level, row)
+    @board.update(color, level, row)
   end
 end
 

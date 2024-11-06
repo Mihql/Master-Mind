@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Class Board
+# Class Board: Display, Manages the grid
 class Board
   def initialize
     @grid_one = Array.new(4) { Array.new(4, 'o') }
