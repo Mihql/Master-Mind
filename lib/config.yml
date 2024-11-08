@@ -1,0 +1,10 @@
+# config.yml
+
+game:
+  player_guessed_right: 0
+  max_guess: 10
+  level: 33
+  color_option: ["red", "blue", "green", "yellow", "purple"]
+
+api:
+  feedback_message: "You guessed %{color}: %{correct_count} correct out of 5"
