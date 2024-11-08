@@ -15,6 +15,6 @@ class ColorLoader
   end
 
   def load_color
-    YAML.load_file('colors.yml')
+    YAML.load_file(File.join(__dir__, 'colors.yml'))
   end
 end

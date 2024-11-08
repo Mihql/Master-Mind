@@ -1,90 +1,70 @@
 # frozen_string_literal: true
 
-require_relative 'board'
-require_relative 'color_loader'
 require 'color'
 
-# Class Game: Manages the gameplay, intractions, and logic
-class Game
-  COUNT = 4
+# File Loader
+require_relative 'color_loader'
 
+require_relative './api'
+
+# Class Game: Manages the gameplay, intractions, logic, display
+class Game
+  attr_accessor :computer_guessed_code, :player_guessed_right, :user_input
+
+  COUNT = 4
   COLOR_INFO = Array.new(COUNT)
 
   def initialize
-    @board = Board.new
-    @color_loader = ColorLoader.new # Load color form yml
-    @computer_color_code = load_color
+    @color_loader = ColorLoader.new # Load colors from YAML
+
+    @computer_color_code = @color_loader.color_info
     @computer_guessed_code = @computer_color_code['colors'].keys.sample(4)
+
+    @user_input = ''
     @level = 0
+    @interface_iterate = 0
     @player_guessed_right = 0
+
     @guessed_color_code = Array.new(COUNT) { Array.new(COUNT) }
   end
 
-  def play
-    COUNT.times do
-      @board.display_board
-      prompt_for_guess
-    end
-
-    puts "Guessed color codes are: #{@guessed_color_code}"
+  # Setter to inject API after initialization
+  def set_api(api, board)
+    @api = api
+    @board = board
   end
 
-  private
-
-  def load_color
-    puts @color_loader.color_info
-    @color_loader.color_info
-  end
-
+  ## Interface
   def prompt_for_guess
-    COUNT.times do |i|
+    5.times do |i|
+      @interface_iterate = i
       loop do
-        puts "Choose the colors you wants guess: Game colors #{@computer_color_code}"
-        user_input = gets.chomp
-        break process_guess(user_input, i) if valid_input?(user_input)
+        puts "Choose the colors you want to guess: Game colors #{@computer_color_code}"
+        @user_input = gets.chomp
 
-        puts "invalid color input #{user_input}"
+        break process_guess(@user_input, @interface_iterate) if @api.valid_input?(@user_input)
+
+        puts "Invalid color input: #{@user_input}"
       end
     end
     @level += 1
   end
 
-  def valid_input?(user_input)
-    user_input.is_a?(String) && valid_color_name?(user_input)
-  end
+  private
 
-  def valid_color_name?(color_name)
-    Color::RGB.by_name(color_name)
-    true
-  rescue KeyError => e
-    puts "Error: #{e.message}"
-    false
-  end
+  ## Gutter Engine Process Evaluate
 
   def process_guess(color, index)
+    puts "#{@user_input} USER"
     @guessed_color_code[@level][index] = color # "color_name"
-    evaluate_guess(color) # evaluvate first then add to board
-    add_guess_to_board(color, @level, index)
+    @api.add_guess_to_board(@user_input, @level, index)
+    evaluate_guess(@user_input)
   end
 
   def evaluate_guess(color)
-    result = color_in_computer_code?(color)
+    result = @api.color_in_computer_code?(@user_input)
     puts result ? "#{result} - correct" : "No match for #{color}"
     @player_guessed_right += 1 if result
-    display_feedback(color, @player_guessed_right)
-  end
-
-  def color_in_computer_code?(color)
-    @computer_guessed_code.include?(color)
-  end
-
-  def display_feedback(color, guessed_right_count)
-    puts "You guessed #{color}: #{guessed_right_count} correct out of / #{COUNT}"
-  end
-
-  def add_guess_to_board(color, level, row)
-    @board.update(color, level, row)
+    @api.display_feedback(@user_input)
   end
 end
-
-Game.new.play
