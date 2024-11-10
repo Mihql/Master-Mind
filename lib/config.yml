@@ -1,8 +1,8 @@
 # config.yml
 
 game:
-  player_guessed_right: 0
-  max_guess: 10
+  COUNT: 4
+  max_guess: 4
   level: 33
   color_option: ["red", "blue", "green", "yellow", "purple"]
 

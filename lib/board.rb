@@ -14,7 +14,7 @@ class Board
   end
 
   def update(player_guessed_color_code, level, row)
-    puts "level:#{level} row:#{row}"
+    # puts "level:#{level} row:#{row}"
     @grid_one[level][row] = player_guessed_color_code
   end
 end
