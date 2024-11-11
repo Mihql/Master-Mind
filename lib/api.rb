@@ -2,8 +2,11 @@
 
 require 'color'
 
+require_relative './enum_module'
+
 # Class API: Valid check, Include check, Display Interface
 class API
+  include PlayerRole
   def initialize(board, game, config_game)
     @board = board
     @game = game
@@ -20,25 +23,53 @@ class API
     false
   end
 
-  def send_client_message(status)
+  def send_status_message(color_main, status)
     case status
     when :winning_combination
-      "Choose #{@max_guess} color from #{@game.computer_color_guess} guesses: #{@game.player_guess}/#{@max_guess}"
-    when :Jackpot
-      "Jackpot you won with winning combination of #{color_arr_main} with #{@max_guess} max guess"
-    else 
-      "Choose #{@max_guess} color from #{@game.computer_color_guess} guesses: #{@game.player_guess}/#{@max_guess}"
+      puts "Congrates Color-Set #{color_main} found on the winning combination, move on now try find correct"
+    when :jackpot
+      puts "Jackpot you won with winning combination of #{color_main} with #{@max_guess} max guess"
+    when :normal 
+      puts "Choose #{@max_guess} color from #{@game.computer_color_guess} guesses: #{@game.player_guess}/#{@max_guess}"
     end
   end
 
-  def ask_user_prompt_color(color_arr)
-    loop do
-      user_prompted_color = gets.chomp
-      color_arr << user_prompted_color if valid_input?(user_prompted_color)
-      return user_prompted_color, color_arr if valid_input?(user_prompted_color)
+   # Create aliases for the methods alias scm
+   alias SSM send_status_message
 
-      puts 'retry again wrong format'
+  def return_player_role
+    role = gets.chomp.downcase
+    case role
+    when "player"
+      PlayerRole::PLAYER
+    when "playmaker"
+      PlayerRole::PLAY_MAKER
+    else
+      puts "Invalid role. Please enter 'player' or 'playmaker'."
+      return_player_role
     end
+  end
+
+  def choose_color_code
+    color_code = []
+    @max_guess.times do |g|
+      puts "Enter color codes #{g}/#{@max_guess}"
+      color = validate_color(color)
+      p color_code << color
+    end
+    color_code
+  end
+
+  def validate_color(color)
+    loop do
+      color = ask_user_prompt_color(color)
+      return color if valid_input?(color)
+      puts "Retry wrong format"
+    end
+  end
+  
+  def ask_user_prompt_color(color_arr)
+    user_prompted_color = gets.chomp
   end
 
   def new_computer_guess_code
@@ -59,12 +90,12 @@ class API
 
   def check_color_arr_at_combination(color_arr_main, combination_code)
     if combination_code == color_arr_main
-      return message = "Jackpot you won with winning combination of #{color_arr_main} with #{@max_guess} max guess"
+      return send_status_message(color_arr_main, :jackpot), :success
     end
 
     if combination_code == color_arr_main || combination_code.sort == color_arr_main.sort
       @game.player_guessed_level_right += 1
-      message = "Congrates Color-Set #{color_arr_main} found on the winning combination, move on now try find correct"
+      message = send_status_message(color_arr_main, :winning_combination)
     else
       message = 'Try again'
     end

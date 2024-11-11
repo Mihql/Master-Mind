@@ -10,6 +10,11 @@ require_relative './lib/game'
 require_relative './lib/api'
 require_relative './lib/board'
 
+# module PlayerRole
+#   PLAYER = :player
+#   PLAY_MAKER = :playermaker
+# end
+
 # Initialize Crank Board and Game instances
 board = Board.new
 game = Game.new
@@ -32,21 +37,18 @@ gameservice.set_api(api, board)
 # api.display_feedback("blue")            # Display feedback for color guess
 # api.add_guess_to_board("blue", 2, 1)    # Add a guess to the board
 
-code = api.new_computer_guess_code
-
-color_index_found = []
 color_arr = []
+code = game.process_player_role(code)
+api.send_status_message(color_arr, :normal)
 
 config['game']['max_guess'].times do |level|
+  puts "Cheat code #{code}"
   config['game']['max_guess'].times do |index|
-    api.send_client_message(:normal)
-    color, color_arr = api.ask_user_prompt_color(color_arr)
-    puts api.check_color_at_index(color, code, index)
+    color, color_arr = game.evaluate_guess(color, color_arr, index, code)
     game.process_display(color, level, index)
   end
-  message = api.check_color_arr_at_combination(color_arr, code)
-  puts message
-  color_index_found = []
+  message, state = api.check_color_arr_at_combination(color_arr, code)
+  break if state == :success
   color_arr = []
   game.player_guess = 0
 end
